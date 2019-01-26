@@ -1,6 +1,14 @@
 export type UnaryFunction<T, R> = (t: T) => R;
 
-export const noop = () => {};
+export function noop() {}
+
+export function identity<A>(a: A): A {
+  return a;
+}
+
+export function always<A>(): (a: A) => A {
+  return identity;
+}
 
 export function pipe<T>(): UnaryFunction<T, T>;
 export function pipe<T, A>(fn1: UnaryFunction<T, A>): UnaryFunction<T, A>;
