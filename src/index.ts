@@ -74,3 +74,18 @@ export function pipe<T, R>(...fns: UnaryFunction<T, R>[]): UnaryFunction<T, R> {
     return fns.reduce((prev, fn) => fn(prev), t as any);
   };
 }
+
+export class Pipeline<A, B> {
+  constructor(public fn: UnaryFunction<A, B>) {}
+
+  public map<C>(callback: UnaryFunction<B, C>): Pipeline<A, C> {
+    return new Pipeline((a: A) => {
+      const internalValue = this.fn(a);
+      return callback(internalValue);
+    });
+  }
+}
+
+export function pipeline<A, B>(fn: UnaryFunction<A, B>): Pipeline<A, B> {
+  return new Pipeline(fn);
+}
