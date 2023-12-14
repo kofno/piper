@@ -1,19 +1,58 @@
+/**
+ * A UnaryFunction is a function that takes one argument.
+ */
 export type UnaryFunction<T, R> = (t: T) => R;
 
+/**
+ * noop is a function that does nothing.
+ */
 export function noop() {}
 
+/**
+ * Identity is a function that returns the argument.
+ * @param a could be anything
+ * @returns a
+ */
 export function identity<A>(a: A): A {
   return a;
 }
 
+/**
+ * Always is a function that returns a function that returns the argument.
+ * @param a could be anything
+ * @returns a function that returns a
+ */
 export function always<A>(a: A): (x?: unknown) => A {
   return (_) => a;
 }
 
+/**
+ * assertNever is a function that throws an error if it is ever called.
+ * It is used to make sure that a switch statement is exhaustive.
+ * @param x
+ */
 export function assertNever(x: never): never {
   throw new Error(`Unexpected value: ${x}`);
 }
 
+/**
+ * pipe is a function that takes a list of functions and returns a function
+ * that is the composition of those functions.
+ *
+ * Example:
+ * ```ts
+ * const manipulateString = pipe(
+ *  upper,
+ *  split(''),
+ *  reverse,
+ *  join
+ * );
+ * manipulateString('food') // => 'DOOF'
+ * ```
+ *
+ * @param fns a list of functions
+ * @returns a function that is the composition of those functions
+ */
 export function pipe<T>(): UnaryFunction<T, T>;
 export function pipe<T, A>(fn1: UnaryFunction<T, A>): UnaryFunction<T, A>;
 export function pipe<T, A, B>(
@@ -80,9 +119,29 @@ export function pipe<T, R>(...fns: UnaryFunction<T, R>[]): UnaryFunction<T, R> {
   };
 }
 
+/**
+ * Pipeline is a class that takes a function and allows you to map over it.
+ * The map function returns a new Pipeline.
+ * This can be used to compose functions in a more readable way or to compose
+ * function in a loop.
+ *
+ * Example:
+ * ```ts
+ * const manipulateString = pipeline(upper)
+ *   .map(split(''))
+ *   .map(reverse)
+ *   .map(join).fn;
+ * manipulateString('food') // => 'DOOF'
+ * ```
+ */
 export class Pipeline<A, B> {
   constructor(public fn: UnaryFunction<A, B>) {}
 
+  /**
+   * map takes a function and returns a new Pipeline.
+   * @param callback
+   * @returns
+   */
   public map<C>(callback: UnaryFunction<B, C>): Pipeline<A, C> {
     return new Pipeline((a: A) => {
       const internalValue = this.fn(a);
@@ -91,10 +150,39 @@ export class Pipeline<A, B> {
   }
 }
 
+/**
+ * pipeline is a function that takes a function and returns a Pipeline.
+ * @param fn any unary function
+ * @returns
+ */
 export function pipeline<A, B>(fn: UnaryFunction<A, B>): Pipeline<A, B> {
   return new Pipeline(fn);
 }
 
+/**
+ * pick is a function that takes a key and an object and returns the value at
+ * that key.
+ *
+ * Example:
+ * ```ts
+ * const obj = { foo: 'bar', baz: 1 };
+ * pick('foo', obj) // => 'bar'
+ * ```
+ *
+ * pick can also be used with pipe to create a function that picks a nested
+ * value.
+ *
+ * Example:
+ * ```ts
+ * const obj = { foo: { bar: 'baz', qux: 1 } };
+ * const foobar = pipe(pick<typeof obj, 'foo'>('foo'), pick('bar'));
+ * foobar(obj) // => 'baz'
+ * ```
+ *
+ * @param key a key
+ * @param obj an object
+ * @returns the value at that key
+ */
 export function pick<Type, K extends keyof Type>(key: K, obj: Type): Type[K];
 export function pick<Type, K extends keyof Type>(key: K): (obj: Type) => Type[K];
 export function pick<T>(key: keyof T, obj?: T) {
