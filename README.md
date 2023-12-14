@@ -1,6 +1,3 @@
-# Moved
-This project is now maintained at [festive-possum](https://github.com/kofno/festive-possum/tree/main/packages/piper)
-
 # Piper
 
 [![Build Status](https://travis-ci.org/kofno/piper.svg?branch=master)](https://travis-ci.org/kofno/piper)

@@ -6,8 +6,12 @@ export function identity<A>(a: A): A {
   return a;
 }
 
-export function always<A>(a: A): () => A {
-  return () => a;
+export function always<A>(a: A): (x?: unknown) => A {
+  return (_) => a;
+}
+
+export function assertNever(x: never): never {
+  throw new Error(`Unexpected value: ${x}`);
 }
 
 export function pipe<T>(): UnaryFunction<T, T>;
@@ -63,7 +67,7 @@ export function pipe<T, A, B, C, D, E, F, G, H>(
 ): UnaryFunction<T, H>;
 export function pipe<T, R>(...fns: UnaryFunction<T, R>[]): UnaryFunction<T, R> {
   if (!fns) {
-    return noop as UnaryFunction<any, any>;
+    return identity as UnaryFunction<T, R>;
   }
 
   if (fns.length === 1) {
@@ -71,6 +75,7 @@ export function pipe<T, R>(...fns: UnaryFunction<T, R>[]): UnaryFunction<T, R> {
   }
 
   return (t: T): R => {
+    // deno-lint-ignore no-explicit-any
     return fns.reduce((prev, fn) => fn(prev), t as any);
   };
 }
@@ -88,4 +93,12 @@ export class Pipeline<A, B> {
 
 export function pipeline<A, B>(fn: UnaryFunction<A, B>): Pipeline<A, B> {
   return new Pipeline(fn);
+}
+
+export function pick<Type, K extends keyof Type>(key: K, obj: Type): Type[K];
+export function pick<Type, K extends keyof Type>(key: K): (obj: Type) => Type[K];
+export function pick<T>(key: keyof T, obj?: T) {
+  const doit = (obj: T) => obj[key];
+
+  return typeof obj === 'undefined' ? doit : doit(obj);
 }
